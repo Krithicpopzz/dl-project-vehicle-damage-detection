@@ -31,6 +31,9 @@ class CarClassifierResNet(nn.Module):
 
 
 def predict(image_path):
+    # Set the device (GPU if available, else CPU)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
     image = Image.open(image_path).convert("RGB")
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -41,16 +44,14 @@ def predict(image_path):
 
     global trained_model
 
-    # Check if trained_model is None and load it
+    # Load the model only once (when it's first called)
     if trained_model is None:
-        # Check if GPU is available, else use CPU
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         trained_model = CarClassifierResNet()
         trained_model.load_state_dict(torch.load("saved_model.pth", map_location=device))
-        trained_model.to(device)  # Move model to the right device
+        trained_model.to(device)  # Move the model to the appropriate device (CPU or GPU)
         trained_model.eval()
 
-    # Move image to the same device as the model
+    # Move the image tensor to the same device as the model
     image_tensor = image_tensor.to(device)
 
     with torch.no_grad():
